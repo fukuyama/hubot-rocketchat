@@ -126,7 +126,9 @@ class RocketChatBotAdapter extends Adapter
 			)
 
 	send: (envelope, strings...) =>
-			@chatdriver.sendMessage(str, envelope.room) for str in strings
+		@chatdriver.getRoomId(envelope.room).then((roomid) =>
+			@chatdriver.sendMessage(str, roomid) for str in strings
+		)
 
 	reply: (envelope, strings...) =>
 			@robot.logger.info "reply"
