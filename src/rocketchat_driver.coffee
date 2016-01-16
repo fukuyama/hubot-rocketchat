@@ -33,7 +33,13 @@ class RocketChatDriver
 	sendMessage: (text, roomid) =>
 		@logger.info "Sending Message To Room: #{roomid}"
 
-		@asteroid.call('sendMessage', {msg: text, rid: roomid})
+		msg = {}
+		if typeof text is 'string'
+			msg.msg = text
+		else if text.msg?
+			msg = text
+		msg.rid = roomid
+		@asteroid.call('sendMessage', msg)
 
 	login: (username, password) =>
 		@logger.info "Logging In"
