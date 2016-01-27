@@ -10,8 +10,13 @@ _messageCollection = 'stream-messages'
 # plugs into generic rocketchatbotadapter
 
 class RocketChatDriver
-	constructor: (url, @logger, cb) ->
-		@asteroid = new Asteroid(url)
+	constructor: (url, ssl, @logger, cb) ->
+		if ssl is  'true'
+			sslenable = true
+		else
+			sslenable = false
+
+		@asteroid = new Asteroid(url, sslenable)
 
 		@asteroid.on 'connected', ->
 			cb()
@@ -40,11 +45,22 @@ class RocketChatDriver
 			msg = text
 		msg.rid = roomid
 		@asteroid.call('sendMessage', msg)
+		
+	customMessage: (message) =>
+		@logger.info "Sending Custom Message To Room: #{message.channel}"
+
+		@asteroid.call('sendMessage', {msg: "", rid: message.channel, attachments: message.attachments, bot: true, groupable: false})
 
 	login: (username, password) =>
 		@logger.info "Logging In"
 		# promise returned
-		return @asteroid.loginWithPassword username, password
+		if process.env.ROCKETCHAT_AUTH is 'ldap'
+			return @asteroid.login
+				username: username
+				ldapPass: password
+				ldapOptions: {}
+		else
+			return @asteroid.loginWithPassword username, password
 
 	prepMeteorSubscriptions: (data) =>
 		# use data to cater for param differences - until we learn more
